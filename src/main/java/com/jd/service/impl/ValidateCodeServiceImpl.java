@@ -53,6 +53,7 @@ public class ValidateCodeServiceImpl implements ValidateCodeService
         {
             return ajax;
         }
+        
 
         // 保存验证码信息
         String uuid = IdUtils.simpleUUID();
