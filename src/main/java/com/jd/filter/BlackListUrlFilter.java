@@ -27,6 +27,7 @@ public class BlackListUrlFilter extends AbstractGatewayFilterFactory<BlackListUr
                 return ServletUtils.webFluxResponseWriter(exchange.getResponse(), "请求地址不允许访问");
             }
 
+            
             return chain.filter(exchange);
         };
     }
