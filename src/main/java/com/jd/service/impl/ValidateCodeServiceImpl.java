@@ -53,9 +53,6 @@ public class ValidateCodeServiceImpl implements ValidateCodeService
         {
             return ajax;
         }
-        
-
-        
         // 保存验证码信息
         String uuid = IdUtils.simpleUUID();
         String verifyKey = CacheConstants.CAPTCHA_CODE_KEY + uuid;
