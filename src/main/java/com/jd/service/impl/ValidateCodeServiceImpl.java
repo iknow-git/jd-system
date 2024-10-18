@@ -46,6 +46,7 @@ public class ValidateCodeServiceImpl implements ValidateCodeService
     @Override
     public AjaxResult createCaptcha() throws IOException, CaptchaException
     {
+        
         AjaxResult ajax = AjaxResult.success();
         boolean captchaEnabled = captchaProperties.getEnabled();
         ajax.put("captchaEnabled", captchaEnabled);
