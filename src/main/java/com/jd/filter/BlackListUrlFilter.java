@@ -19,6 +19,7 @@ public class BlackListUrlFilter extends AbstractGatewayFilterFactory<BlackListUr
     @Override
     public GatewayFilter apply(Config config)
     {
+        
         return (exchange, chain) -> {
 
             String url = exchange.getRequest().getURI().getPath();
