@@ -75,6 +75,7 @@ public class ValidateCodeServiceImpl implements ValidateCodeService
             capStr = code = captchaProducer.createText();
             image = captchaProducer.createImage(capStr);
         }
+        
 
         redisService.setCacheObject(verifyKey, code, Constants.CAPTCHA_EXPIRATION, TimeUnit.MINUTES);
         // 转换流信息写出
