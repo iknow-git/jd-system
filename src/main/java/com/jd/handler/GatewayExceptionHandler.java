@@ -23,6 +23,9 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler
 {
     private static final Logger log = LoggerFactory.getLogger(GatewayExceptionHandler.class);
 
+
+
+
     
     @Override
     public Mono<Void> handle(ServerWebExchange exchange, Throwable ex)
