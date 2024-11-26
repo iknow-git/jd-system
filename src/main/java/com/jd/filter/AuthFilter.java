@@ -40,6 +40,9 @@ public class AuthFilter implements GlobalFilter, Ordered
     private RedisService redisService;
 
 
+    
+
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain)
     {
