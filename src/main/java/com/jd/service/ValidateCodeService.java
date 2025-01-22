@@ -20,4 +20,19 @@ public interface ValidateCodeService
      * 校验验证码
      */
     public void checkCaptcha(String key, String value) throws CaptchaException;
+
+
+
+    
+    /**
+     * 任务开始的监听
+     */
+    default void begin() {
+
+    }
+
+    /**
+     * 耗时操作执行完毕后，就给value注入值
+     */
+    void result(boolean success, T param, WorkResult<V> workResult);
 }
