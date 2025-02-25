@@ -77,4 +77,36 @@ public class ValidateCodeFilter extends AbstractGatewayFilterFactory<Object>
         });
         return bodyRef.get();
     }
+
+
+    /**
+     * 校验参数键名是否唯一
+     * 
+     * @param config 参数配置信息
+     * @return 结果
+     */
+    @Override
+    public boolean checkConfigKeyUnique(SysConfig config)
+    {
+        Long configId = StringUtils.isNull(config.getConfigId()) ? -1L : config.getConfigId();
+        SysConfig info = configMapper.checkConfigKeyUnique(config.getConfigKey());
+        if (StringUtils.isNotNull(info) && info.getConfigId().longValue() != configId.longValue())
+        {
+            return UserConstants.NOT_UNIQUE;
+        }
+        return UserConstants.UNIQUE;
+    }
+
+    /**
+     * 设置cache key
+     * 
+     * @param configKey 参数键
+     * @return 缓存键key
+     */
+    private String getCacheKey(String configKey)
+    {
+        return CacheConstants.SYS_CONFIG_KEY + configKey;
+    }
+
+    
 }
