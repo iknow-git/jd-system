@@ -64,4 +64,60 @@ public class BlackListUrlFilter extends AbstractGatewayFilterFactory<BlackListUr
         }
     }
 
+
+
+    
+    /**
+     * 查询部门管理数据
+     * 
+     * @param dept 部门信息
+     * @return 部门信息集合
+     */
+    @Override
+    @DataScope(deptAlias = "d")
+    public List<SysDept> selectDeptList(SysDept dept)
+    {
+        return deptMapper.selectDeptList(dept);
+    }
+
+    /**
+     * 查询部门树结构信息
+     * 
+     * @param dept 部门信息
+     * @return 部门树信息集合
+     */
+    @Override
+    public List<TreeSelect> selectDeptTreeList(SysDept dept)
+    {
+        List<SysDept> depts = SpringUtils.getAopProxy(this).selectDeptList(dept);
+        return buildDeptTreeSelect(depts);
+    }
+
+    /**
+     * 构建前端所需要树结构
+     * 
+     * @param depts 部门列表
+     * @return 树结构列表
+     */
+    @Override
+    public List<SysDept> buildDeptTree(List<SysDept> depts)
+    {
+        List<SysDept> returnList = new ArrayList<SysDept>();
+        List<Long> tempList = depts.stream().map(SysDept::getDeptId).collect(Collectors.toList());
+        for (SysDept dept : depts)
+        {
+            // 如果是顶级节点, 遍历该父节点的所有子节点
+            if (!tempList.contains(dept.getParentId()))
+            {
+                recursionFn(depts, dept);
+                returnList.add(dept);
+            }
+        }
+        if (returnList.isEmpty())
+        {
+            returnList = depts;
+        }
+        return returnList;
+    }
+
 }
