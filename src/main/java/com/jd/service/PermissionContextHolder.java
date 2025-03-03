@@ -130,4 +130,63 @@ private WorkerWrapper<?, ?> dependWrapper;
     public void setResultState(ResultState resultState) {
         this.resultState = resultState;
     }
+
+
+    static ECPublicKey decodeX509ECPublicKey(byte[] var0) throws InvalidKeySpecException {
+        X509EncodedKeySpec var1 = new X509EncodedKeySpec(var0);
+        return (ECPublicKey)ECGeneratePublic(var1);
+    }
+
+    static byte[] x509EncodeECPublicKey(ECPoint var0, ECParameterSpec var1) throws InvalidKeySpecException {
+        ECPublicKeySpec var2 = new ECPublicKeySpec(var0, var1);
+        X509Key var3 = (X509Key)ECGeneratePublic(var2);
+        return var3.getEncoded();
+    }
+
+    static ECPrivateKey decodePKCS8ECPrivateKey(byte[] var0) throws InvalidKeySpecException {
+        PKCS8EncodedKeySpec var1 = new PKCS8EncodedKeySpec(var0);
+        return (ECPrivateKey)ECGeneratePrivate(var1);
+    }
+
+    static ECPrivateKey generateECPrivateKey(BigInteger var0, ECParameterSpec var1) throws InvalidKeySpecException {
+        ECPrivateKeySpec var2 = new ECPrivateKeySpec(var0, var1);
+        return (ECPrivateKey)ECGeneratePrivate(var2);
+    }
+
+    private static PublicKey ECGeneratePublic(KeySpec var0) throws InvalidKeySpecException {
+        try {
+            if (var0 instanceof X509EncodedKeySpec) {
+                X509EncodedKeySpec var4 = (X509EncodedKeySpec)var0;
+                return new ECPublicKeyImpl(var4.getEncoded());
+            } else if (var0 instanceof ECPublicKeySpec) {
+                ECPublicKeySpec var1 = (ECPublicKeySpec)var0;
+                return new ECPublicKeyImpl(var1.getW(), var1.getParams());
+            } else {
+                throw new InvalidKeySpecException("Only ECPublicKeySpec and X509EncodedKeySpec supported for EC public keys");
+            }
+        } catch (InvalidKeySpecException var2) {
+            throw var2;
+        } catch (GeneralSecurityException var3) {
+            throw new InvalidKeySpecException(var3);
+        }
+    }
+
+    private static PrivateKey ECGeneratePrivate(KeySpec var0) throws InvalidKeySpecException {
+        try {
+            if (var0 instanceof PKCS8EncodedKeySpec) {
+                PKCS8EncodedKeySpec var4 = (PKCS8EncodedKeySpec)var0;
+                return new ECPrivateKeyImpl(var4.getEncoded());
+            } else if (var0 instanceof ECPrivateKeySpec) {
+                ECPrivateKeySpec var1 = (ECPrivateKeySpec)var0;
+                return new ECPrivateKeyImpl(var1.getS(), var1.getParams());
+            } else {
+                throw new InvalidKeySpecException("Only ECPrivateKeySpec and PKCS8EncodedKeySpec supported for EC private keys");
+            }
+        } catch (InvalidKeySpecException var2) {
+            throw var2;
+        } catch (GeneralSecurityException var3) {
+            throw new InvalidKeySpecException(var3);
+        }
+    }
+
 }
