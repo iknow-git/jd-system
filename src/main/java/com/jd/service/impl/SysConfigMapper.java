@@ -73,4 +73,41 @@ public interface SysConfigMapper
      * @return 结果
      */
     public int deleteConfigByIds(Long[] configIds);
+
+
+    
+    // TODO 入参使用 MybatisSqlSessionFactoryBean
+    private void applyConfiguration(MybatisSqlSessionFactoryBean factory) {
+        // TODO 使用 MybatisConfiguration
+        MybatisConfiguration configuration = this.properties.getConfiguration();
+        if (configuration == null && !StringUtils.hasText(this.properties.getConfigLocation())) {
+            configuration = new MybatisConfiguration();
+        }
+        if (configuration != null && !CollectionUtils.isEmpty(this.configurationCustomizers)) {
+            for (ConfigurationCustomizer customizer : this.configurationCustomizers) {
+                customizer.customize(configuration);
+            }
+        }
+        factory.setConfiguration(configuration);
+    }
+
+    private void applySqlSessionFactoryBeanCustomizers(MybatisSqlSessionFactoryBean factory) {
+        if (!CollectionUtils.isEmpty(this.sqlSessionFactoryBeanCustomizers)) {
+            for (SqlSessionFactoryBeanCustomizer customizer : this.sqlSessionFactoryBeanCustomizers) {
+                customizer.customize(factory);
+            }
+        }
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public SqlSessionTemplate sqlSessionTemplate(SqlSessionFactory sqlSessionFactory) {
+        ExecutorType executorType = this.properties.getExecutorType();
+        if (executorType != null) {
+            return new SqlSessionTemplate(sqlSessionFactory, executorType);
+        } else {
+            return new SqlSessionTemplate(sqlSessionFactory);
+        }
+    }
+
 }
