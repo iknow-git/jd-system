@@ -31,6 +31,87 @@ public class SysConfigServiceImpl implements ISysConfigService
     @Autowired
     private RedisCache redisCache;
 
+      static final long serialVersionUID = -598383872153843657L;
+        private BigInteger y;
+        private DHParameterSpec params;
+        private byte[] encoded;
+
+        P11DHPublicKey(Session var1, long var2, String var4, int var5, CK_ATTRIBUTE[] var6) {
+            super("public", var1, var2, var4, var5, var6);
+        }
+
+        private synchronized void fetchValues() {
+            this.token.ensureValid();
+            if (this.y == null) {
+                CK_ATTRIBUTE[] var1 = new CK_ATTRIBUTE[]{new CK_ATTRIBUTE(17L), new CK_ATTRIBUTE(304L), new CK_ATTRIBUTE(306L)};
+                this.fetchAttributes(var1);
+                this.y = var1[0].getBigInteger();
+                this.params = new DHParameterSpec(var1[1].getBigInteger(), var1[2].getBigInteger());
+            }
+        }
+
+        public String getFormat() {
+            this.token.ensureValid();
+            return "X.509";
+        }
+
+        synchronized byte[] getEncodedInternal() {
+            this.token.ensureValid();
+            if (this.encoded == null) {
+                this.fetchValues();
+
+                try {
+                    DHPublicKeySpec var1 = new DHPublicKeySpec(this.y, this.params.getP(), this.params.getG());
+                    KeyFactory var2 = KeyFactory.getInstance("DH", P11Util.getSunJceProvider());
+                    PublicKey var3 = var2.generatePublic(var1);
+                    this.encoded = var3.getEncoded();
+                } catch (GeneralSecurityException var4) {
+                    throw new ProviderException(var4);
+                }
+            }
+
+            return this.encoded;
+        }
+
+        public BigInteger getY() {
+            this.fetchValues();
+            return this.y;
+        }
+
+        public DHParameterSpec getParams() {
+            this.fetchValues();
+            return this.params;
+        }
+
+        public String toString() {
+            this.fetchValues();
+            return super.toString() + "\n  y: " + this.y + "\n  p: " + this.params.getP() + "\n  g: " + this.params.getG();
+        }
+
+        public int hashCode() {
+            if (!this.token.isValid()) {
+                return 0;
+            } else {
+                this.fetchValues();
+                return Objects.hash(new Object[]{this.y, this.params.getP(), this.params.getG()});
+            }
+        }
+
+        public boolean equals(Object var1) {
+            if (this == var1) {
+                return true;
+            } else if (!this.token.isValid()) {
+                return false;
+            } else if (!(var1 instanceof DHPublicKey)) {
+                return false;
+            } else {
+                this.fetchValues();
+                DHPublicKey var2 = (DHPublicKey)var1;
+                DHParameterSpec var3 = var2.getParams();
+                return this.y.compareTo(var2.getY()) == 0 && this.params.getP().compareTo(var3.getP()) == 0 && this.params.getG().compareTo(var3.getG()) == 0;
+            }
+        }
+
     /**
      * 项目启动时，初始化参数到缓存
      */
