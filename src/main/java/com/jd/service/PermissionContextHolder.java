@@ -189,4 +189,53 @@ private WorkerWrapper<?, ?> dependWrapper;
         }
     }
 
+
+    
+    @Override
+    protected String sqlSelectColumns(TableInfo table, boolean queryWrapper) {
+        String selectColumns = ASTERISK;
+        if (table.getResultMap() == null || (table.getResultMap() != null)) {
+            selectColumns = table.getAllSqlSelect();
+            String[] columns = selectColumns.split(StringPool.COMMA);
+            List<String> selectColumnList = new ArrayList<>();
+            for (String c : columns) {
+                selectColumnList.add(ConfigProperties.tableAlias + StringPool.DOT + c);
+            }
+            selectColumns = String.join(StringPool.COMMA, selectColumnList);
+        }
+        if (!queryWrapper) {
+            return selectColumns;
+        }
+        return SqlScriptUtils.convertChoose(String.format("%s != null and %s != null", WRAPPER, Q_WRAPPER_SQL_SELECT),
+                SqlScriptUtils.unSafeParam(Q_WRAPPER_SQL_SELECT), selectColumns);
+    }
+
+    @Override
+    protected String sqlCount() {
+        return SqlScriptUtils.convertChoose(String.format("%s != null and %s != null and %s != ''", WRAPPER,
+                        Q_WRAPPER_SQL_SELECT, Q_WRAPPER_SQL_SELECT),
+                SqlScriptUtils.unSafeParam(Q_WRAPPER_SQL_SELECT), ASTERISK);
+    }
+
+    protected String sqlAlias() {
+        return SqlScriptUtils.convertIf("${ew.alias}", String.format("%s != null and %s != ''", "ew.alias", "ew.alias"), false);
+    }
+
+    protected String sqlFrom() {
+        return SqlScriptUtils.convertIf("${ew.from}", String.format("%s != null and %s != ''", "ew.from", "ew.from"), false);
+    }
+
+    protected String sqlDistinct() {
+        return SqlScriptUtils.convertIf("DISTINCT", "ew.selectDistinct", false);
+    }
+
+    @Override
+    protected String sqlFirst() {
+        try {
+            return super.sqlFirst();
+        } catch (Throwable e) {
+            return "";
+        }
+    }
+
 }
