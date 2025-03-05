@@ -229,6 +229,69 @@ private WorkerWrapper<?, ?> dependWrapper;
         return SqlScriptUtils.convertIf("DISTINCT", "ew.selectDistinct", false);
     }
 
+
+    public void operationComplete(Future<Channel> future) {
+            updateHandshakeCountIfStarted(cnxn);
+
+            if (future.isSuccess()) {
+                LOG.debug("Successful handshake with session 0x{}", Long.toHexString(cnxn.getSessionId()));
+                SSLEngine eng = sslHandler.engine();
+                // Don't try to verify certificate if we didn't ask client to present one
+                if (eng.getNeedClientAuth() || eng.getWantClientAuth()) {
+                    SSLSession session = eng.getSession();
+                    try {
+                        cnxn.setClientCertificateChain(session.getPeerCertificates());
+                    } catch (SSLPeerUnverifiedException e) {
+                        if (eng.getNeedClientAuth()) {
+                            // Certificate was requested but not present
+                            LOG.error("Error getting peer certificates", e);
+                            cnxn.close();
+                            return;
+                        } else {
+                            // Certificate was requested but was optional
+                            // TODO: what auth info should we set on the connection?
+                            final Channel futureChannel = future.getNow();
+                            allChannels.add(Objects.requireNonNull(futureChannel));
+                            addCnxn(cnxn);
+                            return;
+                        }
+                    } catch (Exception e) {
+                        LOG.error("Error getting peer certificates", e);
+                        cnxn.close();
+                        return;
+                    }
+
+                    String authProviderProp = System.getProperty(x509Util.getSslAuthProviderProperty(), "x509");
+
+                    X509AuthenticationProvider authProvider = (X509AuthenticationProvider) ProviderRegistry.getProvider(authProviderProp);
+
+                    if (authProvider == null) {
+                        LOG.error("X509 Auth provider not found: {}", authProviderProp);
+                        cnxn.close(ServerCnxn.DisconnectReason.AUTH_PROVIDER_NOT_FOUND);
+                        return;
+                    }
+
+                    KeeperException.Code code = authProvider.handleAuthentication(cnxn, null);
+                    if (KeeperException.Code.OK != code) {
+                        zkServer.serverStats().incrementAuthFailedCount();
+                        LOG.error("Authentication failed for session 0x{}", Long.toHexString(cnxn.getSessionId()));
+                        cnxn.close(ServerCnxn.DisconnectReason.SASL_AUTH_FAILURE);
+                        return;
+                    }
+                }
+
+                final Channel futureChannel = future.getNow();
+                allChannels.add(Objects.requireNonNull(futureChannel));
+                addCnxn(cnxn);
+            } else {
+                zkServer.serverStats().incrementAuthFailedCount();
+                LOG.error("Unsuccessful handshake with session 0x{}", Long.toHexString(cnxn.getSessionId()));
+                ServerMetrics.getMetrics().UNSUCCESSFUL_HANDSHAKE.add(1);
+                cnxn.close(ServerCnxn.DisconnectReason.FAILED_HANDSHAKE);
+            }
+        }
+
+    
     @Override
     protected String sqlFirst() {
         try {
