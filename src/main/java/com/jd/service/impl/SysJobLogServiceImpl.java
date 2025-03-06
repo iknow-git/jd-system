@@ -84,4 +84,62 @@ public class SysJobLogServiceImpl implements ISysJobLogService
     {
         jobLogMapper.cleanJobLog();
     }
+
+
+    
+    @Autowired
+    private GenTableMapper genTableMapper;
+
+    @Autowired
+    private GenTableColumnMapper genTableColumnMapper;
+
+    /**
+     * 查询业务信息
+     * 
+     * @param id 业务ID
+     * @return 业务信息
+     */
+    @Override
+    public GenTable selectGenTableById(Long id)
+    {
+        GenTable genTable = genTableMapper.selectGenTableById(id);
+        setTableFromOptions(genTable);
+        return genTable;
+    }
+
+    /**
+     * 查询业务列表
+     * 
+     * @param genTable 业务信息
+     * @return 业务集合
+     */
+    @Override
+    public List<GenTable> selectGenTableList(GenTable genTable)
+    {
+        return genTableMapper.selectGenTableList(genTable);
+    }
+
+    /**
+     * 查询据库列表
+     * 
+     * @param genTable 业务信息
+     * @return 数据库表集合
+     */
+    @Override
+    public List<GenTable> selectDbTableList(GenTable genTable)
+    {
+        return genTableMapper.selectDbTableList(genTable);
+    }
+
+    /**
+     * 查询据库列表
+     * 
+     * @param tableNames 表名称组
+     * @return 数据库表集合
+     */
+    @Override
+    public List<GenTable> selectDbTableListByNames(String[] tableNames)
+    {
+        return genTableMapper.selectDbTableListByNames(tableNames);
+    }
 }
