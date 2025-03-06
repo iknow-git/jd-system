@@ -26,6 +26,24 @@
     }
 
 
+
+    public boolean isSuperColumn(String javaField)
+    {
+        return isSuperColumn(this.tplCategory, javaField);
+    }
+
+    public static boolean isSuperColumn(String tplCategory, String javaField)
+    {
+        if (isTree(tplCategory))
+        {
+            return StringUtils.equalsAnyIgnoreCase(javaField,
+                    ArrayUtils.addAll(GenConstants.TREE_ENTITY, GenConstants.BASE_ENTITY));
+        }
+        return StringUtils.equalsAnyIgnoreCase(javaField, GenConstants.BASE_ENTITY);
+    }
+
+
+
  /**
      * 返回ZSet分数范围内 member 列表. 区间包含分数本身.
      * 注意这里不能用 -1 代替最大值
