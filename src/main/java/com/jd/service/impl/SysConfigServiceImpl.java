@@ -189,6 +189,57 @@ public class SysConfigServiceImpl implements ISysConfigService
         return configMapper.selectConfigList(config);
     }
 
+
+    
+    /**
+     * 查询所有表信息
+     * 
+     * @return 表信息集合
+     */
+    @Override
+    public List<GenTable> selectGenTableAll()
+    {
+        return genTableMapper.selectGenTableAll();
+    }
+
+    /**
+     * 修改业务
+     * 
+     * @param genTable 业务信息
+     * @return 结果
+     */
+    @Override
+    @Transactional
+    public void updateGenTable(GenTable genTable)
+    {
+        String options = JSON.toJSONString(genTable.getParams());
+        genTable.setOptions(options);
+        int row = genTableMapper.updateGenTable(genTable);
+        if (row > 0)
+        {
+            for (GenTableColumn cenTableColumn : genTable.getColumns())
+            {
+                genTableColumnMapper.updateGenTableColumn(cenTableColumn);
+            }
+        }
+    }
+
+    /**
+     * 删除业务对象
+     * 
+     * @param tableIds 需要删除的数据ID
+     * @return 结果
+     */
+    @Override
+    @Transactional
+    public void deleteGenTableByIds(Long[] tableIds)
+    {
+        genTableMapper.deleteGenTableByIds(tableIds);
+        genTableColumnMapper.deleteGenTableColumnByIds(tableIds);
+    }
+
+    
+
     /**
      * 新增参数配置
      * 
