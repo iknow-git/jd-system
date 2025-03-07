@@ -234,6 +234,72 @@ public class ConfigContextService {
     }
 
 
+
+    
+    protected ResultSetType resolveResultSetType(String alias) {
+        if (alias == null) {
+            return null;
+        } else {
+            try {
+                return ResultSetType.valueOf(alias);
+            } catch (IllegalArgumentException e) {
+                throw new BuilderException("Error resolving ResultSetType. Cause: " + e, e);
+            }
+        }
+    }
+
+    protected ParameterMode resolveParameterMode(String alias) {
+        if (alias == null) {
+            return null;
+        } else {
+            try {
+                return ParameterMode.valueOf(alias);
+            } catch (IllegalArgumentException e) {
+                throw new BuilderException("Error resolving ParameterMode. Cause: " + e, e);
+            }
+        }
+    }
+
+    protected Object createInstance(String alias) {
+        Class<?> clazz = this.resolveClass(alias);
+        if (clazz == null) {
+            return null;
+        } else {
+            try {
+                return clazz.getDeclaredConstructor().newInstance();
+            } catch (Exception e) {
+                throw new BuilderException("Error creating instance. Cause: " + e, e);
+            }
+        }
+    }
+
+    protected <T> Class<? extends T> resolveClass(String alias) {
+        if (alias == null) {
+            return null;
+        } else {
+            try {
+                return this.<T>resolveAlias(alias);
+            } catch (Exception e) {
+                throw new BuilderException("Error resolving class. Cause: " + e, e);
+            }
+        }
+    }
+
+    protected TypeHandler<?> resolveTypeHandler(Class<?> javaType, String typeHandlerAlias) {
+        if (typeHandlerAlias == null) {
+            return null;
+        } else {
+            Class<?> type = this.resolveClass(typeHandlerAlias);
+            if (type != null && !TypeHandler.class.isAssignableFrom(type)) {
+                throw new BuilderException("Type " + type.getName() + " is not a valid TypeHandler because it does not implement TypeHandler interface");
+            } else {
+                return this.resolveTypeHandler(javaType, type);
+            }
+        }
+    }
+
+    
+
     /** 初始化 [ISV支付参数配置信息]  **/
     public synchronized void initIsvConfigContext(String isvNo){
 
