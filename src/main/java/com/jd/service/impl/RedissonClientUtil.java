@@ -100,6 +100,25 @@ public static List<HttpRange> parseRanges(@Nullable String ranges) {
 	}
 
 
+public String getMessage() {
+		StringBuilder sb = new StringBuilder("Validation failed for argument [")
+				.append(this.parameter.getParameterIndex()).append("] in ")
+				.append(this.parameter.getExecutable().toGenericString());
+		BindingResult bindingResult = getBindingResult();
+		if (bindingResult.getErrorCount() > 1) {
+			sb.append(" with ").append(bindingResult.getErrorCount()).append(" errors");
+		}
+		sb.append(": ");
+		for (ObjectError error : bindingResult.getAllErrors()) {
+			sb.append('[').append(error).append("] ");
+		}
+		return sb.toString();
+	}
+
+
+
+
+
 	public static List<ResourceRegion> toResourceRegions(List<HttpRange> ranges, Resource resource) {
 		if (CollectionUtils.isEmpty(ranges)) {
 			return Collections.emptyList();
