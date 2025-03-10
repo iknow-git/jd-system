@@ -22,4 +22,25 @@ public class KafkaService {
         System.out.println("recordMetadata = " + recordMetadata);
 
     }
+
+
+@Override
+		protected String doParse(String parameter) throws NumberFormatException {
+			return parameter;
+		}
+
+		public String validateRequiredString(String name, String value) throws ServletRequestBindingException {
+			validateRequiredParameter(name, value);
+			return value;
+		}
+
+		public String[] validateRequiredStrings(String name, String[] values) throws ServletRequestBindingException {
+			validateRequiredParameter(name, values);
+			for (String value : values) {
+				validateRequiredParameter(name, value);
+			}
+			return values;
+		}
+
+
 }
