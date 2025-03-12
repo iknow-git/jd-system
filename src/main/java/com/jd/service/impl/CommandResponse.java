@@ -77,6 +77,16 @@ public class CommandResponse {
         data.putAll(m);
     }
 
+
+      /**
+     * 间隔时间(ms)，小于此时间视为重复提交
+     */
+    public int interval() default 5000;
+
+    /**
+     * 提示消息
+     */
+    public String message() default "不允许重复提交，请稍候再试";
     /**
      * Converts this response to a map. The returned map is mutable, and
      * changes to it do not reflect back into this response.
