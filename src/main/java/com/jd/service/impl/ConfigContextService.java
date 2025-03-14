@@ -248,6 +248,172 @@ public class ConfigContextService {
         }
     }
 
+
+    
+    /**
+     * 转换为字符<br>
+     * 如果给定的值为<code>null</code>，或者转换失败，返回默认值<code>null</code><br>
+     * 转换失败不会报错
+     *
+     * @param value 被转换的值
+     * @return 结果
+     */
+    public static Character toChar(Object value)
+    {
+        return toChar(value, null);
+    }
+
+    /**
+     * 转换为byte<br>
+     * 如果给定的值为<code>null</code>，或者转换失败，返回默认值<br>
+     * 转换失败不会报错
+     *
+     * @param value 被转换的值
+     * @param defaultValue 转换错误时的默认值
+     * @return 结果
+     */
+    public static Byte toByte(Object value, Byte defaultValue)
+    {
+        if (value == null)
+        {
+            return defaultValue;
+        }
+        if (value instanceof Byte)
+        {
+            return (Byte) value;
+        }
+        if (value instanceof Number)
+        {
+            return ((Number) value).byteValue();
+        }
+        final String valueStr = toStr(value, null);
+        if (StringUtils.isEmpty(valueStr))
+        {
+            return defaultValue;
+        }
+        try
+        {
+            return Byte.parseByte(valueStr);
+        }
+        catch (Exception e)
+        {
+            return defaultValue;
+        }
+    }
+
+    /**
+     * 转换为byte<br>
+     * 如果给定的值为<code>null</code>，或者转换失败，返回默认值<code>null</code><br>
+     * 转换失败不会报错
+     *
+     * @param value 被转换的值
+     * @return 结果
+     */
+    public static Byte toByte(Object value)
+    {
+        return toByte(value, null);
+    }
+
+    /**
+     * 转换为Short<br>
+     * 如果给定的值为<code>null</code>，或者转换失败，返回默认值<br>
+     * 转换失败不会报错
+     *
+     * @param value 被转换的值
+     * @param defaultValue 转换错误时的默认值
+     * @return 结果
+     */
+    public static Short toShort(Object value, Short defaultValue)
+    {
+        if (value == null)
+        {
+            return defaultValue;
+        }
+        if (value instanceof Short)
+        {
+            return (Short) value;
+        }
+        if (value instanceof Number)
+        {
+            return ((Number) value).shortValue();
+        }
+        final String valueStr = toStr(value, null);
+        if (StringUtils.isEmpty(valueStr))
+        {
+            return defaultValue;
+        }
+        try
+        {
+            return Short.parseShort(valueStr.trim());
+        }
+        catch (Exception e)
+        {
+            return defaultValue;
+        }
+    }
+
+    /**
+     * 转换为Short<br>
+     * 如果给定的值为<code>null</code>，或者转换失败，返回默认值<code>null</code><br>
+     * 转换失败不会报错
+     *
+     * @param value 被转换的值
+     * @return 结果
+     */
+    public static Short toShort(Object value)
+    {
+        return toShort(value, null);
+    }
+
+    /**
+     * 转换为Number<br>
+     * 如果给定的值为空，或者转换失败，返回默认值<br>
+     * 转换失败不会报错
+     *
+     * @param value 被转换的值
+     * @param defaultValue 转换错误时的默认值
+     * @return 结果
+     */
+    public static Number toNumber(Object value, Number defaultValue)
+    {
+        if (value == null)
+        {
+            return defaultValue;
+        }
+        if (value instanceof Number)
+        {
+            return (Number) value;
+        }
+        final String valueStr = toStr(value, null);
+        if (StringUtils.isEmpty(valueStr))
+        {
+            return defaultValue;
+        }
+        try
+        {
+            return NumberFormat.getInstance().parse(valueStr);
+        }
+        catch (Exception e)
+        {
+            return defaultValue;
+        }
+    }
+
+    /**
+     * 转换为Number<br>
+     * 如果给定的值为空，或者转换失败，返回默认值<code>null</code><br>
+     * 转换失败不会报错
+     *
+     * @param value 被转换的值
+     * @return 结果
+     */
+    public static Number toNumber(Object value)
+    {
+        return toNumber(value, null);
+    }
+
+
+    
     protected ParameterMode resolveParameterMode(String alias) {
         if (alias == null) {
             return null;
