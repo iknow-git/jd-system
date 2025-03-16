@@ -21,6 +21,30 @@ public class IncompleteElementException extends BuilderException {
     super(cause);
   }
 
+
+	
+    // 数据库客户端编码
+    private String clientEncoding;
+
+    // 数据库服务器端编码
+    private String serverEncoding;
+
+    public String getClientEncoding() {
+        return clientEncoding;
+    }
+
+    public void setClientEncoding(String clientEncoding) {
+        this.clientEncoding = clientEncoding;
+    }
+
+    public String getServerEncoding() {
+        return serverEncoding;
+    }
+
+    public void setServerEncoding(String serverEncoding) {
+        this.serverEncoding = serverEncoding;
+    }
+
 	
     public CharsetConvert(String clientEncoding, String serverEncoding) {
         this.clientEncoding = clientEncoding;
