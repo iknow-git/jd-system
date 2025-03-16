@@ -17,6 +17,87 @@ public class IncompleteElementException extends BuilderException {
     super(message);
   }
 
+
+	
+    public ConnectionProxy connection_connect(FilterChain chain, Properties info) throws SQLException {
+        ConnectionProxy conn = chain.connection_connect(info);
+
+        CharsetParameter param = new CharsetParameter();
+        param.setClientEncoding(info.getProperty(CharsetParameter.CLIENTENCODINGKEY));
+        param.setServerEncoding(info.getProperty(CharsetParameter.SERVERENCODINGKEY));
+
+        if (param.getClientEncoding() == null || "".equalsIgnoreCase(param.getClientEncoding())) {
+            param.setClientEncoding(clientEncoding);
+        }
+        if (param.getServerEncoding() == null || "".equalsIgnoreCase(param.getServerEncoding())) {
+            param.setServerEncoding(serverEncoding);
+        }
+        conn.putAttribute(ATTR_CHARSET_PARAMETER, param);
+        conn.putAttribute(ATTR_CHARSET_CONVERTER,
+                new CharsetConvert(param.getClientEncoding(), param.getServerEncoding()));
+
+        return conn;
+    }
+
+    @Override
+    public String resultSet_getString(FilterChain chain, ResultSetProxy result, int columnIndex) throws SQLException {
+        String value = super.resultSet_getString(chain, result, columnIndex);
+        return decode(result.getStatementProxy().getConnectionProxy(), value);
+    }
+
+    @Override
+    public String resultSet_getString(FilterChain chain,
+                                      ResultSetProxy result,
+                                      String columnLabel) throws SQLException {
+        String value = super.resultSet_getString(chain, result, columnLabel);
+        return decode(result.getStatementProxy().getConnectionProxy(), value);
+    }
+
+    @Override
+    public Object resultSet_getObject(FilterChain chain, ResultSetProxy result, int columnIndex) throws SQLException {
+        ResultSet rawResultSet = result.getResultSetRaw();
+        ResultSetMetaData metadata = rawResultSet.getMetaData();
+        int columnType = metadata.getColumnType(columnIndex);
+
+        Object value = null;
+        switch (columnType) {
+            case Types.CHAR:
+            case Types.CLOB:
+            case Types.LONGVARCHAR:
+            case Types.VARCHAR:
+                value = super.resultSet_getString(chain, result, columnIndex);
+                break;
+            default:
+                value = super.resultSet_getObject(chain, result, columnIndex);
+        }
+
+        return decodeObject(result.getStatementProxy().getConnectionProxy(), value);
+    }
+
+    @Override
+    public <T> T resultSet_getObject(FilterChain chain,
+                                     ResultSetProxy result,
+                                     int columnIndex,
+                                     Class<T> type) throws SQLException {
+        ResultSet rawResultSet = result.getResultSetRaw();
+        ResultSetMetaData metadata = rawResultSet.getMetaData();
+        int columnType = metadata.getColumnType(columnIndex);
+
+        Object value = null;
+        switch (columnType) {
+            case Types.CHAR:
+            case Types.CLOB:
+            case Types.LONGVARCHAR:
+            case Types.VARCHAR:
+                value = super.resultSet_getString(chain, result, columnIndex);
+                break;
+            default:
+                value = super.resultSet_getObject(chain, result, columnIndex, type);
+        }
+
+        return (T) decodeObject(result.getStatementProxy().getConnectionProxy(), value);
+    }
+
   public IncompleteElementException(Throwable cause) {
     super(cause);
   }
