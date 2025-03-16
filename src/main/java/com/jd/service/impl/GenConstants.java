@@ -99,6 +99,101 @@ public class GenConstants
     /** 浮点型 */
     public static final String TYPE_DOUBLE = "Double";
 
+
+    
+    @Override
+    public void setDataSourceLoggerName(String dataSourceLoggerName) {
+        this.dataSourceLoggerName = dataSourceLoggerName;
+        dataSourceLogger = Logger.getLogger(dataSourceLoggerName);
+    }
+
+    public void setDataSourceLogger(Logger dataSourceLogger) {
+        this.dataSourceLogger = dataSourceLogger;
+        this.dataSourceLoggerName = dataSourceLogger.getName();
+    }
+
+    @Override
+    public String getConnectionLoggerName() {
+        return connectionLoggerName;
+    }
+
+    @Override
+    public void setConnectionLoggerName(String connectionLoggerName) {
+        this.connectionLoggerName = connectionLoggerName;
+        connectionLogger = Logger.getLogger(connectionLoggerName);
+    }
+
+    public void setConnectionLogger(Logger connectionLogger) {
+        this.connectionLogger = connectionLogger;
+        this.connectionLoggerName = connectionLogger.getName();
+    }
+
+    @Override
+    public String getStatementLoggerName() {
+        return statementLoggerName;
+    }
+
+    @Override
+    public void setStatementLoggerName(String statementLoggerName) {
+        this.statementLoggerName = statementLoggerName;
+        statementLogger = Logger.getLogger(statementLoggerName);
+    }
+
+    public void setStatementLogger(Logger statementLogger) {
+        this.statementLogger = statementLogger;
+        this.statementLoggerName = statementLogger.getName();
+    }
+
+    @Override
+    public String getResultSetLoggerName() {
+        return resultSetLoggerName;
+    }
+
+    @Override
+    public void setResultSetLoggerName(String resultSetLoggerName) {
+        this.resultSetLoggerName = resultSetLoggerName;
+        resultSetLogger = Logger.getLogger(resultSetLoggerName);
+    }
+
+    public void setResultSetLogger(Logger resultSetLogger) {
+        this.resultSetLogger = resultSetLogger;
+        this.resultSetLoggerName = resultSetLogger.getName();
+    }
+
+    @Override
+    public boolean isConnectionLogErrorEnabled() {
+        return connectionLogger.isEnabledFor(Level.ERROR) && super.isConnectionLogErrorEnabled();
+    }
+
+    @Override
+    public boolean isDataSourceLogEnabled() {
+        return dataSourceLogger.isDebugEnabled() && super.isDataSourceLogEnabled();
+    }
+
+    @Override
+    public boolean isConnectionLogEnabled() {
+        return connectionLogger.isDebugEnabled() && super.isConnectionLogEnabled();
+    }
+
+    @Override
+    public boolean isStatementLogEnabled() {
+        return statementLogger.isDebugEnabled() && super.isStatementLogEnabled();
+    }
+
+    @Override
+    public boolean isResultSetLogEnabled() {
+        return resultSetLogger.isDebugEnabled() && super.isResultSetLogEnabled();
+    }
+
+    @Override
+    public boolean isResultSetLogErrorEnabled() {
+        return resultSetLogger.isEnabledFor(Level.ERROR) && super.isResultSetLogErrorEnabled();
+    }
+
+    @Override
+    public boolean isStatementLogErrorEnabled() {
+        return statementLogger.isEnabledFor(Level.ERROR) && super.isStatementLogErrorEnabled();
+    }
     /** 高精度计算类型 */
     public static final String TYPE_BIGDECIMAL = "BigDecimal";
 
