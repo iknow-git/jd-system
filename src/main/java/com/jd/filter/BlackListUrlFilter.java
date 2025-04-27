@@ -29,6 +29,124 @@ public class BlackListUrlFilter extends AbstractGatewayFilterFactory<BlackListUr
             }
 
             
+    private boolean failoverSwitchEnable;
+    
+    private final ServiceInfoHolder serviceInfoHolder;
+    
+    private final ScheduledExecutorService executorService;
+    
+    private final InstancesDiffer instancesDiffer;
+    
+    private FailoverDataSource failoverDataSource;
+    
+    private String notifierEventScope;
+    
+    public FailoverReactor(ServiceInfoHolder serviceInfoHolder, String notifierEventScope) {
+        this.serviceInfoHolder = serviceInfoHolder;
+        this.notifierEventScope = notifierEventScope;
+        this.instancesDiffer = new InstancesDiffer();
+        Collection<FailoverDataSource> dataSources = NacosServiceLoader.load(FailoverDataSource.class);
+        for (FailoverDataSource dataSource : dataSources) {
+            failoverDataSource = dataSource;
+            NAMING_LOGGER.info("FailoverDataSource type is {}", dataSource.getClass());
+            break;
+        }
+        // init executorService
+        this.executorService = new ScheduledThreadPoolExecutor(1,
+                new NameThreadFactory("com.alibaba.nacos.naming.failover"));
+        this.init();
+    }
+    
+    /**
+     * Init.
+     */
+    public void init() {
+        executorService.scheduleWithFixedDelay(new FailoverSwitchRefresher(), 0L, 5000L, TimeUnit.MILLISECONDS);
+    }
+    
+    class FailoverSwitchRefresher implements Runnable {
+        
+        @Override
+        public void run() {
+            try {
+                FailoverSwitch fSwitch = failoverDataSource.getSwitch();
+                if (fSwitch == null) {
+                    failoverSwitchEnable = false;
+                    return;
+                }
+                if (fSwitch.getEnabled() != failoverSwitchEnable) {
+                    NAMING_LOGGER.info("failover switch changed, new: {}", fSwitch.getEnabled());
+                }
+                if (fSwitch.getEnabled()) {
+                    Map<String, ServiceInfo> failoverMap = new ConcurrentHashMap<>(200);
+                    Map<String, FailoverData> failoverData = failoverDataSource.getFailoverData();
+                    for (Map.Entry<String, FailoverData> entry : failoverData.entrySet()) {
+                        ServiceInfo newService = (ServiceInfo) entry.getValue().getData();
+                        ServiceInfo oldService = serviceMap.get(entry.getKey());
+                        InstancesDiff diff = instancesDiffer.doDiff(oldService, newService);
+                        if (diff.hasDifferent()) {
+                            NAMING_LOGGER.info("[NA] failoverdata isChangedServiceInfo. newService:{}",
+                                    JacksonUtils.toJson(newService));
+                            NotifyCenter.publishEvent(new InstancesChangeEvent(notifierEventScope, newService.getName(),
+                                    newService.getGroupName(), newService.getClusters(), newService.getHosts(), diff));
+                        }
+                        failoverMap.put(entry.getKey(), (ServiceInfo) entry.getValue().getData());
+                    }
+                    
+                    if (failoverMap.size() > 0) {
+                        failoverServiceCntMetrics();
+                        serviceMap = failoverMap;
+                    }
+                    
+                    failoverSwitchEnable = true;
+                    return;
+                }
+                
+                if (failoverSwitchEnable && !fSwitch.getEnabled()) {
+                    Map<String, ServiceInfo> serviceInfoMap = serviceInfoHolder.getServiceInfoMap();
+                    for (Map.Entry<String, ServiceInfo> entry : serviceMap.entrySet()) {
+                        ServiceInfo oldService = entry.getValue();
+                        ServiceInfo newService = serviceInfoMap.get(entry.getKey());
+                        if (newService != null) {
+                            InstancesDiff diff = instancesDiffer.doDiff(oldService, newService);
+                            if (diff.hasDifferent()) {
+                                NotifyCenter.publishEvent(
+                                        new InstancesChangeEvent(notifierEventScope, newService.getName(),
+                                                newService.getGroupName(), newService.getClusters(),
+                                                newService.getHosts(), diff));
+                            }
+                        }
+                    }
+                    
+                    serviceMap.clear();
+                    failoverSwitchEnable = false;
+                    failoverServiceCntMetricsClear();
+                }
+            } catch (Exception e) {
+                NAMING_LOGGER.error("FailoverSwitchRefresher run err", e);
+            }
+        }
+    }
+    
+    public boolean isFailoverSwitch() {
+        return failoverSwitchEnable;
+    }
+    
+    public boolean isFailoverSwitch(String serviceName) {
+        return failoverSwitchEnable && serviceMap.containsKey(serviceName) && serviceMap.get(serviceName).ipCount() > 0;
+    }
+    
+    public ServiceInfo getService(String key) {
+        ServiceInfo serviceInfo = serviceMap.get(key);
+        
+        if (serviceInfo == null) {
+            serviceInfo = new ServiceInfo();
+            serviceInfo.setName(key);
+        }
+        
+        return serviceInfo;
+    }
+    
             return chain.filter(exchange);
         };
     }
