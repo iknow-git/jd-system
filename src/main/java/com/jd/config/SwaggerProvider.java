@@ -60,6 +60,25 @@ public class SwaggerProvider implements SwaggerResourcesProvider, WebFluxConfigu
         return resourceList;
     }
 
+
+    
+    /**
+     * Get current disaster recovery switch.
+     *
+     * @return
+     */
+    FailoverSwitch getSwitch();
+    
+    
+    /**
+     * Get current disaster recovery data.
+     *
+     * @return map
+     */
+    Map<String, FailoverData> getFailoverData();
+
+
+    
     private SwaggerResource swaggerResource(String name, String location)
     {
         SwaggerResource swaggerResource = new SwaggerResource();
