@@ -62,4 +62,57 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler
 
         return ServletUtils.webFluxResponseWriter(response, msg);
     }
+
+
+    
+    /**
+     * . private constructor
+     */
+    private NacosAbilityManagerHolder() {
+    }
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(NacosAbilityManagerHolder.class);
+    
+    /**
+     * . singleton
+     */
+    private static AbstractAbilityControlManager abstractAbilityControlManager;
+    
+    /**
+     * . get nacos ability control manager
+     *
+     * @return BaseAbilityControlManager
+     */
+    public static synchronized AbstractAbilityControlManager getInstance() {
+        if (null == abstractAbilityControlManager) {
+            initAbilityControlManager();
+        }
+        return abstractAbilityControlManager;
+    }
+    
+    /**
+     * . Return the target type of ability manager
+     *
+     * @param clazz clazz
+     * @param <T>   target type
+     * @return AbilityControlManager
+     */
+    public static <T extends AbstractAbilityControlManager> T getInstance(Class<T> clazz) {
+        return clazz.cast(abstractAbilityControlManager);
+    }
+    
+    private static void initAbilityControlManager() {
+        // spi discover implement
+        Collection<AbstractAbilityControlManager> load = null;
+        load = NacosServiceLoader.load(AbstractAbilityControlManager.class);
+        // the priority of the server is higher
+        List<AbstractAbilityControlManager> collect = load.stream()
+                .sorted(Comparator.comparingInt(AbstractAbilityControlManager::getPriority))
+                .collect(Collectors.toList());
+        // get the highest priority one
+        if (load.size() > 0) {
+            abstractAbilityControlManager = collect.get(collect.size() - 1);
+            LOGGER.info("[AbilityControlManager] Successfully initialize AbilityControlManager");
+        }
+    }
 }
